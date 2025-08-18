@@ -1,0 +1,8 @@
+[package]
+name = "ixa-index"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown = "0.15.5"
+twox-hash = { version = "2.1.1", default-features = false, features = ["xxhash3_128", "std"] }
