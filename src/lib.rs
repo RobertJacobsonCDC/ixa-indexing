@@ -13,8 +13,8 @@ Nice to have:
 
 */
 
-#![feature(generic_const_exprs)]
-#![feature(const_type_id)]
+// #![feature(generic_const_exprs)]
+// #![feature(const_type_id)]
 #![allow(dead_code)]
 use std::any::TypeId;
 use std::collections::HashMap;
@@ -24,7 +24,7 @@ mod type_erased_index;
 mod hash128;
 mod typed_index;
 mod multi_index;
-mod tuple_sort;
+// mod tuple_sort;
 
 pub type EntityId = u64;
 

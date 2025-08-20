@@ -1,3 +1,8 @@
+[workspace]
+members = [
+    "ixa-derive"
+]
+
 [package]
 name = "ixa-index"
 version = "0.1.0"
@@ -7,3 +12,4 @@ edition = "2024"
 hashbrown = "0.15.5"
 twox-hash = { version = "2.1.1", default-features = false, features = ["xxhash3_128", "std"] }
 frunk = "0.4.4"
+ixa-derive = { path = "ixa-derive" }
