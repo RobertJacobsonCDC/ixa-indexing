@@ -13,8 +13,24 @@ Nice to have:
 
 */
 
+#![feature(generic_const_exprs)]
+#![feature(const_type_id)]
+#![allow(dead_code)]
+use std::any::TypeId;
+use std::collections::HashMap;
+use crate::typed_index::BxIndex;
+
 mod type_erased_index;
 mod hash128;
 mod typed_index;
+mod multi_index;
+mod tuple_sort;
 
 pub type EntityId = u64;
+
+struct PropertyManager {
+  /// Resolves property names to type ids.
+  property_names: HashMap<&'static str, TypeId>,
+  indexes       : HashMap<TypeId, BxIndex>,
+
+}
