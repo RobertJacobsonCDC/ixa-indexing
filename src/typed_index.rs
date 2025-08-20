@@ -7,7 +7,7 @@ A trait `TypeErasedIndex` defining a type-erased API implemented on all such `In
 **Limitations of the type-erased API:**
 
 - Can only "see" values after they have been serialized to some known type (e.g. `String`)
-- Cannot create new entries (sets of `EntityId`s), because the `T` value is stored along with the set. As a consequence:
+- Cannot create new entries (sets of `PersonId`s), because the `T` value is stored along with the set. As a consequence:
   - Can only insert into existing sets (for values that already have a set)
   - `get_with_hash_mut` is fallible (although we may choose to make the typed version fallible as well)
 
@@ -25,6 +25,8 @@ use hashbrown::hash_table::OccupiedEntry;
 use crate::hash128::one_shot_128;
 use crate::EntityId;
 
+type PersonId = EntityId;
+
 pub type BxIndex = Box<dyn TypeErasedIndex>;
 type HashValueType = u128;
 
@@ -33,7 +35,7 @@ type HashValueType = u128;
 pub struct Index<T: Hash + Eq + Clone + Any> {
   // We store a copy of the value here so that we can iterate over it in the typed API, and so that the type-erased
   // API can access some serialization of it.
-  lookup: HashTable<(T, HashSet<EntityId>)>,
+  lookup: HashTable<(T, HashSet<PersonId>)>,
 }
 
 /// Contains the typed API
@@ -44,10 +46,9 @@ impl<T: Hash + Eq + Clone + Any> Index<T> {
     }
   }
 
-
   /// Inserts an entity into the set associated with `key`, creating a new set if one does not yet exist. Returns a
   /// `bool` according to whether the `entity_id` already existed in the set.
-  pub fn insert_entity(&mut self, key: &T, entity_id: EntityId) -> bool {
+  pub fn insert_entity(&mut self, key: &T, entity_id: PersonId) -> bool {
     let hash = one_shot_128(&key);
 
     // > `hasher` is called if entries need to be moved or copied to a new table.
@@ -65,7 +66,7 @@ impl<T: Hash + Eq + Clone + Any> Index<T> {
   }
 
   /// Inserting a new _value_ requires the value itself.
-  pub fn insert_value(&mut self, key: T, set: HashSet<EntityId>) -> OccupiedEntry<'_, (T, HashSet<EntityId>)> {
+  pub fn insert_value(&mut self, key: T, set: HashSet<PersonId>) -> OccupiedEntry<'_, (T, HashSet<PersonId>)> {
     let hash = one_shot_128(&key);
     // > `hasher` is called if entries need to be moved or copied to a new table.
     // > This must return the same hash value that each entry was inserted with.
@@ -74,13 +75,13 @@ impl<T: Hash + Eq + Clone + Any> Index<T> {
   }
 
   /// Gets an immutable reference to the set associated with the `key` if it exists.
-  pub fn get(&self, key: &T) -> Option<&HashSet<EntityId>> {
+  pub fn get(&self, key: &T) -> Option<&HashSet<PersonId>> {
     let hash = one_shot_128(&key);
     self.get_with_hash(hash)
   }
 
   /// Gets a mutable reference to the set associated with the `key` if it exists.
-  pub fn get_mut(&mut self, key: &T) -> Option<&mut HashSet<EntityId>> {
+  pub fn get_mut(&mut self, key: &T) -> Option<&mut HashSet<PersonId>> {
     let hash = one_shot_128(&key);
     self.get_with_hash_mut(hash)
   }
@@ -99,13 +100,13 @@ pub trait TypeErasedIndex {
   /// If the set corresponding to the hash exists, inserts the `entity_id` into the associated set, returning a `bool`
   /// according to whether the `entity_id` was already in the set.
   /// If the set does not exist, returns `Err(())`
-  fn insert_entity_with_hash(&mut self, hash: HashValueType, entity_id: EntityId) -> Result<bool, ()>;
+  fn insert_entity_with_hash(&mut self, hash: HashValueType, entity_id: PersonId) -> Result<bool, ()>;
 
   /// Fetching a set only requires the hash.
-  fn get_with_hash(&self, hash: HashValueType) -> Option<&HashSet<EntityId>>;
+  fn get_with_hash(&self, hash: HashValueType) -> Option<&HashSet<PersonId>>;
 
   /// Fetching a set only requires the hash.
-  fn get_with_hash_mut(&mut self, hash: HashValueType) -> Option<&mut HashSet<EntityId>>;
+  fn get_with_hash_mut(&mut self, hash: HashValueType) -> Option<&mut HashSet<PersonId>>;
 
   /// Does the index contain the given hash?
   fn has_hash(&self, hash: HashValueType) -> bool;
@@ -118,7 +119,7 @@ impl<T: Hash + Eq + Clone + Any> TypeErasedIndex for Index<T> {
   /// If the set corresponding to the hash exists, inserts the `entity_id` into the associated set, returning a `bool`
   /// according to whether the `entity_id` was already in the set.
   /// If the set does not exist, returns `Err(())`
-  fn insert_entity_with_hash(&mut self, hash: HashValueType, entity_id: EntityId) -> Result<bool, ()> {
+  fn insert_entity_with_hash(&mut self, hash: HashValueType, entity_id: PersonId) -> Result<bool, ()> {
     // Equality is determined by comparing the full 128-bit hashes. We do not expect any collisions before the heat
     // death of the universe.
     let hash128_equality = |(stored_value, _): &_| one_shot_128(stored_value) == hash;
@@ -128,7 +129,7 @@ impl<T: Hash + Eq + Clone + Any> TypeErasedIndex for Index<T> {
   }
 
   /// Fetching a set only requires the hash.
-  fn get_with_hash(&self, hash: HashValueType) -> Option<&HashSet<EntityId>> {
+  fn get_with_hash(&self, hash: HashValueType) -> Option<&HashSet<PersonId>> {
     // Equality is determined by comparing the full 128-bit hashes. We do not expect any collisions before the heat
     // death of the universe.
     let hash128_equality = |(stored_value, _): &_| one_shot_128(stored_value) == hash;
@@ -136,7 +137,7 @@ impl<T: Hash + Eq + Clone + Any> TypeErasedIndex for Index<T> {
   }
 
   /// Fetching a set only requires the hash.
-  fn get_with_hash_mut(&mut self, hash: HashValueType) -> Option<&mut HashSet<EntityId>> {
+  fn get_with_hash_mut(&mut self, hash: HashValueType) -> Option<&mut HashSet<PersonId>> {
     // Equality is determined by comparing the full 128-bit hashes. We do not expect any collisions before the heat
     // death of the universe.
     let hash128_equality = |(stored_value, _): &_| one_shot_128(stored_value) == hash;
